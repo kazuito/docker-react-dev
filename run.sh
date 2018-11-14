@@ -6,6 +6,7 @@ PROG_DIR=$(cd $(dirname $0) && pwd)
 IMAGE_NAME=react_dev
 CONTAINER_PREFIX=react_dev
 BUILD_DIR=$PROG_DIR/build
+APPLICATION_BASEDIR=$PROG_DIR/apps
 LOG_LEVEL=1
 
 # log: Print messages to stderr when $level is equal or greater than $LOG_LEVEL
@@ -130,7 +131,12 @@ function create () {
     error_exit "create command need 1 argument (application name)"
   fi
 
-  local application_dir=$PROG_DIR/$application_name
+  if [ ! -d "$APPLICATION_BASEDIR" ]; then
+    mkdir -p "$APPLICATION_BASEDIR"
+    debug "Applications directory created: $APPLICATION_BASEDIR"
+  fi
+
+  local application_dir=$APPLICATION_BASEDIR/$application_name
   if [ -d "$application_dir" ]; then
     error_exit "Directory '$application_dir' already exists. Stop."
   fi
@@ -141,7 +147,7 @@ function create () {
   fi
 
   debug "Run create-react-app"
-  docker run --rm -u $(id -u):$(id -g) -v $PROG_DIR:/opt/app $IMAGE_NAME \
+  docker run --rm -u $(id -u):$(id -g) -v $APPLICATION_BASEDIR:/opt/app $IMAGE_NAME \
     create-react-app "$application_name"
   debug "Run npm install"
   docker run --rm -u $(id -u):$(id -g) -v $application_dir:/opt/app $IMAGE_NAME \
