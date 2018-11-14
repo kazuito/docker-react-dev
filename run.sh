@@ -178,7 +178,7 @@ function run_app () {
     port_option=""
   fi
 
-  local application_dir=$PROG_DIR/$application_name
+  local application_dir=$APPLICATION_BASEDIR/$application_name
   local container_name=$(get_container_name $application_name)
 
   if [ -z "$application_name" ]; then
