@@ -94,6 +94,11 @@ function image_exists () {
   return $exists
 }
 
+function get_container_name () {
+  local application_name=$1
+  echo ${CONTAINER_PREFIX}_$application_name
+}
+
 # build: Build Dockerfile in $BUILD_DIR as $IMAGE_NAME
 function build () {
   if ! image_exists; then
@@ -148,7 +153,7 @@ function create () {
 #   $1 (application_name): Application name
 #   $2 (port): A port to open (default: 3000)
 #   $@ (options): Options for `docker run` command
-function run () {
+function run_app () {
   debug "function run() starts"
   set +eu
   local application_name=$1
@@ -168,7 +173,7 @@ function run () {
   fi
 
   local application_dir=$PROG_DIR/$application_name
-  local container_name=${CONTAINER_PREFIX}_$application_name
+  local container_name=$(get_container_name $application_name)
 
   if [ -z "$application_name" ]; then
     error_exit "create command need 1 argument (application name)"
@@ -193,6 +198,17 @@ function run () {
     -v $application_dir:/opt/app $port_option $options $IMAGE_NAME npm start
 }
 
+function stop_app () {
+  local application_name=$1
+  local container_name=$(get_container_name $application_name)
+  if container_exists $container_name; then
+    info "Stoppng container $container_name..."
+    docker stop $container_name
+  else
+    warn "Container $container_name does not exist."
+  fi
+}
+
 function main () {
   # Call function by first argument (sub-command)
   set +u
@@ -201,15 +217,17 @@ function main () {
   shift
   set -e
   case "$sub_command" in
-    
-  'build')
+    'build')
       build "$@"
       ;;
     'create')
       create "$@"
       ;;
     'run'|'start')
-      run "$@"
+      run_app "$@"
+      ;;
+    'stop')
+      stop_app "$@"
       ;;
     '')
       error_exit "No sub-command specified."
