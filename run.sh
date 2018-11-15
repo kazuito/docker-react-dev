@@ -264,7 +264,7 @@ function main () {
     'create')
       create "$@"
       ;;
-    'install|install_modules')
+    'install'|'install_modules')
       install_modules "$@"
       ;;
     'run'|'start')
