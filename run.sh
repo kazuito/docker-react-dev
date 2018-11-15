@@ -22,22 +22,22 @@ function log () {
 
 # debug: Log message with level 0
 function debug () {
-  log 0 "[DEBUG]" "$@"
+  log 0 "[DEBUG]" "$*"
 }
 
 # info: Log message with level 1
 function info () {
-  log 1 "[INFO]" "$@"
+  log 1 "[INFO]" "$*"
 }
 
 # warn: Log message with level 2
 function warn () {
-  log 2 "[WARN]" "$@"
+  log 2 "[WARN]" "$*"
 }
 
 # error: Log message with level 3
 function error () {
-  log 3 "[ERROR]" "$@"
+  log 3 "[ERROR]" "$*"
 }
 
 # error_exit: Show error message and exit this script with $error_code
@@ -142,9 +142,9 @@ function create () {
   fi
 
   local application_dir=$(get_application_dir "$application_name")
-  if [ -d "$application_dir" ]; then
-    error_exit "Directory '$application_dir' already exists. Stop."
-  fi
+#  if [ -d "$application_dir" ]; then
+#    error_exit "Directory '$application_dir' already exists. Stop."
+#  fi
 
   if ! image_exists; then
     info "Image not found. Build Docker image before create your application ($application_name). Please wait..."
