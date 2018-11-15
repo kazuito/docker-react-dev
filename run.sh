@@ -124,6 +124,13 @@ function build () {
   fi
 }
 
+function rebuild () {
+  if image_exists; then
+    docker rmi -f $IMAGE_NAME
+  fi
+  build
+}
+
 # create: Create a new application
 # Args:
 #   $1 (application_name): Directory name to be created
@@ -260,6 +267,9 @@ function main () {
   case "$sub_command" in
     'build')
       build "$@"
+      ;;
+    'rebuild')
+      rebuild "$@"
       ;;
     'create')
       create "$@"
