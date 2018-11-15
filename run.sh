@@ -100,6 +100,11 @@ function get_container_name () {
   echo ${CONTAINER_PREFIX}_$application_name
 }
 
+function get_application_dir () {
+  local application_name=$1
+  echo $APPLICATION_BASEDIR/$application_name
+}
+
 # build: Build Dockerfile in $BUILD_DIR as $IMAGE_NAME
 function build () {
   if ! image_exists; then
@@ -136,7 +141,7 @@ function create () {
     debug "Applications directory created: $APPLICATION_BASEDIR"
   fi
 
-  local application_dir=$APPLICATION_BASEDIR/$application_name
+  local application_dir=$(get_application_dir "$application_name")
   if [ -d "$application_dir" ]; then
     error_exit "Directory '$application_dir' already exists. Stop."
   fi
@@ -149,6 +154,33 @@ function create () {
   debug "Run create-react-app"
   docker run --rm -u $(id -u):$(id -g) -v $APPLICATION_BASEDIR:/opt/app $IMAGE_NAME \
     create-react-app "$application_name"
+}
+
+# install_modules: Install modules in the application directory
+# Args:
+#   $1 (application_name): Application to install modules
+function install_modules () {
+  debug "function install_modules() starts"
+  set +u
+  local application_name=$1
+  set -u
+  if [ -z " $application_name" ]; then
+    error_exit "install_modules command needs 1 argumens (application name)"
+  fi
+
+  local application_dir=$(get_application_dir "$application_name")
+  if [ ! -d "$application_dir" ]; then
+    error_exit "Application directory does not exist. Stop."
+  fi
+  if [ ! -f "$application_dir/package.json" ]; then
+    error_exit "package.json does not exist in the application directory. Stop."
+  fi
+
+  if ! image_exists; then
+    info "Image not found. Build Docker image before create your application ($application_name). Please wait..."
+    build
+  fi
+
   debug "Run npm install"
   docker run --rm -u $(id -u):$(id -g) -v $application_dir:/opt/app $IMAGE_NAME \
     npm install
@@ -193,6 +225,9 @@ function run_app () {
   if [ ! -d "$application_dir" ]; then
     create "$application_name"
   fi
+  if [ ! -d "$application_dir/node_modules" ]; then
+    install_modules "$application_name"
+  fi
 
   if container_exists $container_name; then
     info "Remove existing cointainer '$container_name'"
@@ -228,6 +263,9 @@ function main () {
       ;;
     'create')
       create "$@"
+      ;;
+    'install|install_modules')
+      install_modules "$@"
       ;;
     'run'|'start')
       run_app "$@"
