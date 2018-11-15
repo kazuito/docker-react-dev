@@ -124,10 +124,14 @@ function build () {
   fi
 }
 
-function rebuild () {
+function rmi () {
   if image_exists; then
     docker rmi -f $IMAGE_NAME
   fi
+}
+
+function rebuild () {
+  rmi
   build
 }
 
@@ -267,6 +271,9 @@ function main () {
   case "$sub_command" in
     'build')
       build "$@"
+      ;;
+    'rmi')
+      rmi "$@"
       ;;
     'rebuild')
       rebuild "$@"
